@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "Rtc.h"
 #include "Segmen.h"
+#include "PrayerTimes.h"
+#include "DFRobotDFPlayerMini.h"
 // #include <WiFi.h>
 #include "BluetoothSerial.h"
 
@@ -8,7 +10,11 @@
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
+double times[sizeof(TimeName) / sizeof(char *)];
+
+// class inisialisasi
 BluetoothSerial SerialBT;
+DFRobotDFPlayerMini myDFPlayer;
 
 #if CONFIG_FREERTOS_UNICORE
 #define ARDUINO_RUNNING_CORE 0
@@ -27,41 +33,42 @@ void TaskRtcEprom(void *pvParameters);
 
 // SemaphoreHandle_t xMutex;
 QueueHandle_t timeDisplay;
-QueueHandle_t setTime;
+// QueueHandle_t setTime;
 
 // the setup function runs once when you press reset or power the board
 void setup()
 {
+  // DFPlayer inisialisasi
+  Serial1.begin(9600);
+  myDFPlayer.begin(Serial1);
+  myDFPlayer.volume(25); //Set volume . From 0 to 30
+  myDFPlayer.play(1);    //Play the first mp3
 
-  // initialize serial communication at 115200 bits per second:
   // WiFi.softAP("jws_WiFi", "password");
-
-  SerialBT.begin("ESP32test"); //Bluetooth device name
   // IPAddress IP = WiFi.softAPIP();
-  Serial.begin(9600);
-
   // Serial.print("AP IP address: ");
   // Serial.println(IP);
+
+  // bluetooth inisialisasi
+  SerialBT.begin("Jws DacxtroniC"); //Bluetooth device name
+  Serial.begin(9600);
 
   timeDisplay = xQueueCreate(2, sizeof(char[8]));
   if (timeDisplay == 0)
   {
     Serial.println("Failed to create the queue timeDisplay");
   }
-  setTime = xQueueCreate(2, sizeof(char[8]));
-  if (setTime == 0)
-  {
-    Serial.println("Failed to create the queue setTime");
-  }
+  // setTime = xQueueCreate(2, sizeof(char[8]));
+  // if (setTime == 0)
+  // {
+  //   Serial.println("Failed to create the queue setTime");
+  // }
 
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
-      TaskBlink, "TaskBlink" // A name just for humans
-      ,
-      1024 // This stack size can be checked & adjusted by reading the Stack Highwater
-      ,
-      NULL, 2 // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-      ,
+      TaskBlink, "TaskBlink", // A name just for humans
+      1024,                   // This stack size can be checked & adjusted by reading the Stack Highwater
+      NULL, 2,                // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
       NULL, ARDUINO_RUNNING_CORE);
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
@@ -69,16 +76,12 @@ void setup()
       4096,                                     // This stack size can be checked & adjusted by reading the Stack Highwater
       NULL, 2,                                  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
       NULL, 0);
-
   xTaskCreatePinnedToCore(
-      TaskRtcEprom, "taskRtcEprom", 2048 // Stack size
-      ,
-      NULL, 2 // Priority
-      ,
+      TaskRtcEprom, "taskRtcEprom", 2048, // Stack size
+      NULL, 2,                            // Priority
       NULL, ARDUINO_RUNNING_CORE);
 
   // xMutex = xSemaphoreCreateMutex();
-
   // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
 }
 
@@ -169,9 +172,13 @@ void TaskRtcEprom(void *pvParameters) // This is a task.
   int tahun;
   u_char timeBuffer[8];
   vTaskDelay(100);
-
+  set_calc_method(ISNA);
+  set_asr_method(Shafii);
+  set_high_lats_adjust_method(AngleBased);
+  set_fajr_angle(20);
+  set_isha_angle(18);
   // Jam.setTime(16, 31, 00);
-  // Jam.setTanggal(27, 02, 2021);
+  // Jam.setTanggal(28, 02, 2021);
   for (;;)
   {
     Jam.getTime(jam, menit, detik);
@@ -199,25 +206,49 @@ void TaskRtcEprom(void *pvParameters) // This is a task.
     }
     xQueueSend(timeDisplay, &timeBuffer, portMAX_DELAY);
 
-    if (setTime != 0)
-    {
-      if (xQueueReceive(setTime, &timeBuffer, portMAX_DELAY))
-      {
+    // if (setTime != 0)
+    // {
+    //   if (xQueueReceive(setTime, &timeBuffer, portMAX_DELAY))
+    //   {
 
-        jam = timeBuffer[0];
-        menit = timeBuffer[1];
-        detik = timeBuffer[2];
-        hari = timeBuffer[3];
-        tanggal = timeBuffer[4];
-        bulan = timeBuffer[5];
-        tahun = timeBuffer[6] * 100 + timeBuffer[7];
+    //     jam = timeBuffer[0];
+    //     menit = timeBuffer[1];
+    //     detik = timeBuffer[2];
+    //     hari = timeBuffer[3];
+    //     tanggal = timeBuffer[4];
+    //     bulan = timeBuffer[5];
+    //     tahun = timeBuffer[6] * 100 + timeBuffer[7];
 
-        Jam.setTime(jam, menit, detik);
-        Jam.setTanggal(tanggal, bulan, tahun);
-      }
-    }
+    //     Jam.setTime(jam, menit, detik);
+    //     Jam.setTanggal(tanggal, bulan, tahun);
+    //   }
+    // }
 
-    vTaskDelay(500);
+    //  CODE BACA JADWAL
+    float lt = -7.803249;
+    float bj = 110.3398251;
+    unsigned char wkt = 7;
+    int hours, minutes;
+
+    get_prayer_times(tahun, bulan, tanggal, lt, bj, wkt, times);
+    get_float_time_parts(times[0], hours, minutes);
+    int waktu_subuh = (hours * 60) + minutes + 2;
+    get_float_time_parts(times[2], hours, minutes);
+    int waktu_duhur = (hours * 60) + minutes + 2;
+    get_float_time_parts(times[3], hours, minutes);
+    int waktu_ashar = (hours * 60) + minutes + 2;
+    get_float_time_parts(times[5], hours, minutes);
+    int waktu_magrib = (hours * 60) + minutes + 2;
+    get_float_time_parts(times[6], hours, minutes);
+    int waktu_isya = (hours * 60) + minutes + 2;
+
+    printf("Subuh = %d:%d\n", waktu_subuh / 60, waktu_subuh % 60);
+    printf("Dzuhur = %d:%d\n", waktu_duhur / 60, waktu_duhur % 60);
+    printf("Ashar = %d:%d\n", waktu_ashar / 60, waktu_ashar % 60);
+    printf("Maghrib = %d:%d\n", waktu_magrib / 60, waktu_magrib % 60);
+    printf("Isya = %d:%d\n", waktu_isya / 60, waktu_isya % 60);
+    vTaskDelay(5000);
   }
 }
 //edit from KHS
+// sudo chmod a+rw /dev/ttyUSB0
