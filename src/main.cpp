@@ -5,6 +5,13 @@
 #include "DFRobotDFPlayerMini.h"
 // #include <WiFi.h>
 #include "BluetoothSerial.h"
+#include <DMD32.h>        //
+#include "fonts/SystemFont5x7.h"
+#include "fonts/Arial_black_16.h"
+
+//Fire up the DMD library as dmd
+#define DISPLAYS_ACROSS 4
+#define DISPLAYS_DOWN 1
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -15,6 +22,11 @@ double times[sizeof(TimeName) / sizeof(char *)];
 // class inisialisasi
 BluetoothSerial SerialBT;
 DFRobotDFPlayerMini myDFPlayer;
+DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
+
+//display segment dan running text = core 0
+//selain itu core 1
+#define DISPLAY_CORE 0
 
 #if CONFIG_FREERTOS_UNICORE
 #define ARDUINO_RUNNING_CORE 0
@@ -27,9 +39,9 @@ DFRobotDFPlayerMini myDFPlayer;
 #endif
 
 // define two tasks for Blink & AnalogRead
-void TaskBlink(void *pvParameters);
-void TaskDisplaySegment(void *pvParameters);
-void TaskRtcEprom(void *pvParameters);
+void TaskAndroid(void *pvParameters);
+void TaskDisplay(void *pvParameters);
+void TaskMain(void *pvParameters);
 
 // SemaphoreHandle_t xMutex;
 QueueHandle_t timeDisplay;
@@ -66,19 +78,19 @@ void setup()
 
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
-      TaskBlink, "TaskBlink", // A name just for humans
-      1024,                   // This stack size can be checked & adjusted by reading the Stack Highwater
-      NULL, 2,                // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+      TaskAndroid, "taskAndroid", // A name just for humans
+      1024,                       // This stack size can be checked & adjusted by reading the Stack Highwater
+      NULL, 2,                    // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
       NULL, ARDUINO_RUNNING_CORE);
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
-      TaskDisplaySegment, "taskDisplaySegment", // A name just for humans
-      4096,                                     // This stack size can be checked & adjusted by reading the Stack Highwater
-      NULL, 2,                                  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-      NULL, 0);
+      TaskDisplay, "taskDisplay", // A name just for humans
+      4096,                       // This stack size can be checked & adjusted by reading the Stack Highwater
+      NULL, 2,                    // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+      NULL, DISPLAY_CORE);
   xTaskCreatePinnedToCore(
-      TaskRtcEprom, "taskRtcEprom", 2048, // Stack size
-      NULL, 2,                            // Priority
+      TaskMain, "taskMain", 2048, // Stack size
+      NULL, 2,                    // Priority
       NULL, ARDUINO_RUNNING_CORE);
 
   // xMutex = xSemaphoreCreateMutex();
@@ -94,7 +106,7 @@ void loop()
 /*---------------------- Tasks ---------------------*/
 /*--------------------------------------------------*/
 
-void TaskBlink(void *pvParameters) // This is a task.
+void TaskAndroid(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
 
@@ -115,7 +127,7 @@ void TaskBlink(void *pvParameters) // This is a task.
   }
 }
 
-void TaskDisplaySegment(void *pvParameters) // This is a task.
+void TaskDisplay(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
   u_char timeBuffer[8];
@@ -162,7 +174,7 @@ void TaskDisplaySegment(void *pvParameters) // This is a task.
   }
 }
 
-void TaskRtcEprom(void *pvParameters) // This is a task.
+void TaskMain(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
 
@@ -232,21 +244,81 @@ void TaskRtcEprom(void *pvParameters) // This is a task.
 
     get_prayer_times(tahun, bulan, tanggal, lt, bj, wkt, times);
     get_float_time_parts(times[0], hours, minutes);
-    int waktu_subuh = (hours * 60) + minutes + 2;
+    int waktuSubuh = (hours * 60) + minutes + 2;
     get_float_time_parts(times[2], hours, minutes);
-    int waktu_duhur = (hours * 60) + minutes + 2;
+    int waktuDzuhur = (hours * 60) + minutes + 2;
     get_float_time_parts(times[3], hours, minutes);
-    int waktu_ashar = (hours * 60) + minutes + 2;
+    int waktuAshar = (hours * 60) + minutes + 2;
     get_float_time_parts(times[5], hours, minutes);
-    int waktu_magrib = (hours * 60) + minutes + 2;
+    int waktuMaghrib = (hours * 60) + minutes + 2;
     get_float_time_parts(times[6], hours, minutes);
-    int waktu_isya = (hours * 60) + minutes + 2;
+    int waktuIsya = (hours * 60) + minutes + 2;
+    int waktuImsya = waktuSubuh - 10;
+    //DFPlayer code
+    const int tilawahSubuh = 10;
+    const int tilawahDzuhur = 10;
+    const int tilawahAshar = 10;
+    const int tilawahMaghrib = 10;
+    const int tilawahIsya = 10;
+    int playSubuh = waktuSubuh - tilawahSubuh;
+    int playDzuhur = waktuDzuhur - tilawahDzuhur;
+    int playAshar = waktuAshar - tilawahAshar;
+    int playMaghrib = waktuMaghrib - tilawahMaghrib;
+    int playIsya = waktuSubuh - tilawahSubuh;
+    int compare = (jam * 60) + menit;
+    if (tilawahSubuh > 0 && compare == playSubuh)
+    {
+      myDFPlayer.randomAll();
+    }
+    else if (tilawahDzuhur > 0 && compare == playDzuhur)
+    {
+      myDFPlayer.randomAll();
+    }
+    else if (tilawahAshar > 0 && compare == playAshar)
+    {
+      myDFPlayer.randomAll();
+    }
+    else if (tilawahMaghrib > 0 && compare == playMaghrib)
+    {
+      myDFPlayer.randomAll();
+    }
+    else if (tilawahIsya > 0 && compare == playIsya)
+    {
+      myDFPlayer.randomAll();
+    }
 
-    printf("Subuh = %d:%d\n", waktu_subuh / 60, waktu_subuh % 60);
-    printf("Dzuhur = %d:%d\n", waktu_duhur / 60, waktu_duhur % 60);
-    printf("Ashar = %d:%d\n", waktu_ashar / 60, waktu_ashar % 60);
-    printf("Maghrib = %d:%d\n", waktu_magrib / 60, waktu_magrib % 60);
-    printf("Isya = %d:%d\n", waktu_isya / 60, waktu_isya % 60);
+    // ALARM SHOLAT CODE
+
+    if (compare == waktuImsya)
+    {
+      /* code */
+    }
+    if (compare == waktuSubuh)
+    {
+      /* code */
+    }
+    if (compare == waktuDzuhur)
+    {
+      /* code */
+    }
+    if (compare == waktuAshar)
+    {
+      /* code */
+    }
+    if (compare == waktuMaghrib)
+    {
+      /* code */
+    }
+    if (compare == waktuIsya)
+    {
+      /* code */
+    }
+
+    printf("Subuh = %d:%d\n", waktuSubuh / 60, waktuSubuh % 60);
+    printf("Dzuhur = %d:%d\n", waktuDzuhur / 60, waktuDzuhur % 60);
+    printf("Ashar = %d:%d\n", waktuAshar / 60, waktuAshar % 60);
+    printf("Maghrib = %d:%d\n", waktuMaghrib / 60, waktuMaghrib % 60);
+    printf("Isya = %d:%d\n", waktuIsya / 60, waktuIsya % 60);
     vTaskDelay(5000);
   }
 }
