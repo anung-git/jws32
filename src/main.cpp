@@ -5,10 +5,12 @@
 #include "DFRobotDFPlayerMini.h"
 // #include <WiFi.h>
 #include "BluetoothSerial.h"
-#include <DMD32.h>        //
+#include <DMD32.h> //
 #include "fonts/SystemFont5x7.h"
 #include "fonts/Arial_black_16.h"
-
+#include <inttypes.h>
+// ID CPU
+#define KEY 225215781318192
 //Fire up the DMD library as dmd
 #define DISPLAYS_ACROSS 4
 #define DISPLAYS_DOWN 1
@@ -64,6 +66,19 @@ void setup()
   // bluetooth inisialisasi
   SerialBT.begin("Jws DacxtroniC"); //Bluetooth device name
   Serial.begin(9600);
+
+  uint64_t chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
+  Serial.print("ESP32 Chip ID = ");    //print High 2 bytes
+  // printf("% PRIu64 \n",  chipid);
+  printf("%" PRIu64 "\n", chipid);
+  if (chipid == KEY)
+  {
+    Serial.println("KUNCI TERBUKA");
+  }
+  else
+  {
+    Serial.println("KUNCI TERTUTUP");
+  }
 
   timeDisplay = xQueueCreate(2, sizeof(char[8]));
   if (timeDisplay == 0)
@@ -144,18 +159,30 @@ void TaskDisplay(void *pvParameters) // This is a task.
       if (xQueueReceive(timeDisplay, &timeBuffer, portMAX_DELAY))
       {
         segmen.ledToggle();
-        Serial.print("Data Receve = ");
-        for (int i = 0; i < 10; i++)
-        {
-          Serial.print(timeBuffer[i]);
-          if (i == 7)
-          {
-            Serial.println();
-            break;
-          }
-          Serial.print(',');
-        }
+        // Serial.print("Data Receve = ");
+        // for (int i = 0; i < 10; i++)
+        // {
+        //   Serial.print(timeBuffer[i]);
+        //   if (i == 7)
+        //   {
+        //     Serial.println();
+        //     break;
+        //   }
+        //   Serial.print(',');
+        // }
         segmen.setTime(timeBuffer[0], timeBuffer[1]);
+        segmen.setTanggal(timeBuffer[4], timeBuffer[5], 2000 + timeBuffer[7]);
+
+        if (timeBuffer[2] % 10 < 5)
+        {
+          segmen.displayNormal();
+        }
+        else
+        {
+          // Tampilkan hari ke segment
+          segmen.setHari(timeBuffer[3]);
+        }
+
         segmen.loop();
       }
 
@@ -260,8 +287,10 @@ void TaskMain(void *pvParameters) // This is a task.
     const int tilawahAshar = 10;
     const int tilawahMaghrib = 10;
     const int tilawahIsya = 10;
+    const int tilawahJumat = 10;
     int playSubuh = waktuSubuh - tilawahSubuh;
     int playDzuhur = waktuDzuhur - tilawahDzuhur;
+    int playJumat = waktuDzuhur - tilawahJumat;
     int playAshar = waktuAshar - tilawahAshar;
     int playMaghrib = waktuMaghrib - tilawahMaghrib;
     int playIsya = waktuSubuh - tilawahSubuh;
@@ -272,7 +301,17 @@ void TaskMain(void *pvParameters) // This is a task.
     }
     else if (tilawahDzuhur > 0 && compare == playDzuhur)
     {
-      myDFPlayer.randomAll();
+      if (hari != 5) //bukan jumat
+      {
+        myDFPlayer.randomAll();
+      }
+    }
+    else if (tilawahJumat > 0 && compare == playJumat)
+    {
+      if (hari == 5) //hari jumat
+      {
+        myDFPlayer.randomAll();
+      }
     }
     else if (tilawahAshar > 0 && compare == playAshar)
     {
@@ -299,7 +338,15 @@ void TaskMain(void *pvParameters) // This is a task.
     }
     if (compare == waktuDzuhur)
     {
-      /* code */
+      // jumat 5
+      if (hari == 5)
+      {
+        /* JUMATAN */
+      }
+      else
+      {
+        /* DZUHUR */
+      }
     }
     if (compare == waktuAshar)
     {
@@ -319,7 +366,7 @@ void TaskMain(void *pvParameters) // This is a task.
     printf("Ashar = %d:%d\n", waktuAshar / 60, waktuAshar % 60);
     printf("Maghrib = %d:%d\n", waktuMaghrib / 60, waktuMaghrib % 60);
     printf("Isya = %d:%d\n", waktuIsya / 60, waktuIsya % 60);
-    vTaskDelay(5000);
+    vTaskDelay(1000);
   }
 }
 //edit from KHS
