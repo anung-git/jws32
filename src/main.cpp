@@ -497,11 +497,12 @@ void TaskMain(void *pvParameters) // This is a task.
 
     if (alarmFlag > 0)
     {
-      int adzan = 60 * 3;
+      int adzan = 10;
       int iqomahCountDown = 10 * 60;
       //CODE FOR ADZAN
-      for (int i = 0; i < adzan; i++)
+      while (adzan--)
       {
+        printf("adzan = %d \n", adzan);
         myDFPlayer.stop();
         xQueueOverwrite(alarmQue, (void *)&alarmFlag);
         // Kirim pesan ke display
@@ -511,21 +512,22 @@ void TaskMain(void *pvParameters) // This is a task.
         // }
 
         //hidupkan Buzer
-        for (uint8_t i = 0; i < beep; i++)
+        if (beep)
         {
+          beep--;
           // digitalWrite(BUZER, HIGH);
-          uint8_t blink = i % 2;
           vTaskDelay(500);
-          xQueueOverwrite(alarmQue, (void *)&blink);
           digitalWrite(BUZER, LOW);
           vTaskDelay(500);
-          xQueueOverwrite(alarmQue, (void *)&blink);
         }
+        uint8_t blink = adzan % 2;
+        xQueueOverwrite(alarmQue, (void *)&blink);
         vTaskDelay(500);
       }
       // CODE FOR IQOMAH
       while (iqomahCountDown)
       {
+        printf("iqomah = %d \n", iqomahCountDown);
         alarmFlag = 10;
         iqomahCountDown--;
         timeBuffer[0] = iqomahCountDown / 60;
