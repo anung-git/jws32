@@ -10,7 +10,7 @@
 #include "fonts/Arial_black_16.h"
 #include <inttypes.h>
 
-//  Freertos
+// Freertos
 // ID CPU
 #define KEY 225215781318192
 //Fire up the DMD library as dmd
@@ -18,14 +18,14 @@
 #define DISPLAYS_DOWN 1
 #define BUZER 13
 
-#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
-#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
-#endif
+// #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+// #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+// #endif
 
 double times[sizeof(TimeName) / sizeof(char *)];
 
 // class inisialisasi
-BluetoothSerial SerialBT;
+// BluetoothSerial SerialBT;
 DFRobotDFPlayerMini myDFPlayer;
 DMD dmd(DISPLAYS_ACROSS, DISPLAYS_DOWN);
 Rtc Jam = Rtc();
@@ -44,6 +44,7 @@ Rtc Jam = Rtc();
 void TaskAndroid(void *pvParameters);
 void TaskDisplay(void *pvParameters);
 void TaskMain(void *pvParameters);
+void TaskScan(void *pvParameters);
 
 SemaphoreHandle_t rtcMutex;
 QueueHandle_t timeDisplay;
@@ -68,7 +69,7 @@ void setup()
   // Serial.println(IP);
 
   // bluetooth inisialisasi
-  SerialBT.begin("Jws DacxtroniC"); //Bluetooth device name
+  // SerialBT.begin("Jws DacxtroniC"); //Bluetooth device name
   Serial.begin(9600);
 
   uint64_t chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
@@ -112,11 +113,18 @@ void setup()
       NULL, 1,                    // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
       NULL, ARDUINO_RUNNING_CORE);
   xTaskCreatePinnedToCore(
+      TaskScan, "taskScan", // A name just for humans
+      3000,                 // This stack size can be checked & adjusted by reading the Stack Highwater
+      NULL, 2,              // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+      NULL, ARDUINO_RUNNING_CORE);
+  xTaskCreatePinnedToCore(
       TaskMain, "taskMain", 3000, // Stack size
       NULL, 1,                    // Priority
       NULL, ARDUINO_RUNNING_CORE);
 
   rtcMutex = xSemaphoreCreateMutex();
+
+  dmd.clearScreen(true);
   // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
 }
 
@@ -129,13 +137,23 @@ void loop()
 /*---------------------- Tasks ---------------------*/
 /*--------------------------------------------------*/
 
+void TaskScan(void *pvParameters) // This is a task.
+{
+  (void)pvParameters;
+
+  for (;;)
+  {
+    // dmd.scanDisplayBySPI();
+    // printf("Stak scandmd = %d\n", uxTaskGetStackHighWaterMark(NULL));
+    // printf("Heep scandmd = %d\n", xPortGetFreeHeapSize());
+    // vTaskDelay(1000);
+  }
+}
 void TaskAndroid(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
 
   vTaskDelay(100);
-  // char timeBuffer[8]={17,17,0,6,28,0,2,21};
-  // xQueueSend(setTime, (void *)&timeBuffer, portMAX_DELAY);
 
   for (;;) // A Task shall never return or exit.
   {
@@ -144,15 +162,14 @@ void TaskAndroid(void *pvParameters) // This is a task.
     // {
     //   xSemaphoreGive(xMutex);
     // }
-    if (SerialBT.available())
-    {
-      Serial.write(SerialBT.read());
-    }
+    // if (SerialBT.available())
+    // {
+    //   Serial.write(SerialBT.read());
+    // }
 
-    printf("Stak android = %d\n", uxTaskGetStackHighWaterMark(NULL));
+    // printf("Stak android = %d\n", uxTaskGetStackHighWaterMark(NULL));
     // printf("Heep android = %d\n", xPortGetFreeHeapSize());
   }
-  vTaskDelete(NULL);
 }
 
 void TaskDisplay(void *pvParameters) // This is a task.
@@ -235,7 +252,7 @@ void TaskDisplay(void *pvParameters) // This is a task.
         break;
       }
 
-      printf("alarm start %d \n", alarmFlag);
+      // printf("alarm start %d \n", alarmFlag);
     }
     // ReceveDisplay Jadwal
     if (xQueueReceive(jadwalQue, &jadwalBufer, 0) == pdTRUE)
@@ -255,7 +272,7 @@ void TaskDisplay(void *pvParameters) // This is a task.
       segmen.setAshar(jadwalBufer[4] / 60, jadwalBufer[4] % 60);
       segmen.setMaghrib(jadwalBufer[5] / 60, jadwalBufer[5] % 60);
       segmen.setIsya(jadwalBufer[6] / 60, jadwalBufer[6] % 60);
-      printf("Stak display = %d\n", uxTaskGetStackHighWaterMark(NULL));
+      // printf("Stak display = %d\n", uxTaskGetStackHighWaterMark(NULL));
       // printf("Heep display = %d\n", xPortGetFreeHeapSize());
       // printf("Imsya = %d:%d\n", jadwalBufer[0] / 60, jadwalBufer[0] % 60);
       // printf("Subuh = %d:%d\n", jadwalBufer[1] / 60, jadwalBufer[1] % 60);
@@ -298,14 +315,10 @@ void TaskMain(void *pvParameters) // This is a task.
   set_high_lats_adjust_method(AngleBased);
   set_fajr_angle(20);
   set_isha_angle(18);
-  Jam.setTime(18, 0, 0);
+  // Jam.setTime(18, 0, 0);
   // Jam.setTanggal(28, 02, 2021);
-
-  //1392
-
   for (;;)
   {
-
     if (xSemaphoreTake(rtcMutex, (TickType_t)0xFFFFFFFF) == 1)
     {
       Jam.getTime(jam, menit, detik);
@@ -322,40 +335,11 @@ void TaskMain(void *pvParameters) // This is a task.
     timeBuffer[6] = tahun / 100;
     timeBuffer[7] = tahun % 100;
 
-    // Serial.print("Data Send = ");
-    // for (int i = 0; i < 10; i++)
-    // {
-    //   Serial.print(timeBuffer[i]);
-    //   if (i == 7)
-    //   {
-    //     Serial.println();
-    //     break;
-    //   }
-    //   Serial.print(',');
-    // }
     if (xQueueSend(timeDisplay, (void *)&timeBuffer, portMAX_DELAY) != pdTRUE)
     {
       Serial.println(" Quee time full");
       /* code */
     }
-
-    // if (setTime != 0)
-    // {
-    //   if (xQueueReceive(setTime, (void *)&timeBuffer, portMAX_DELAY))
-    //   {
-
-    //     jam = timeBuffer[0];
-    //     menit = timeBuffer[1];
-    //     detik = timeBuffer[2];
-    //     hari = timeBuffer[3];
-    //     tanggal = timeBuffer[4];
-    //     bulan = timeBuffer[5];
-    //     tahun = timeBuffer[6] * 100 + timeBuffer[7];
-
-    //     Jam.setTime(jam, menit, detik);
-    //     Jam.setTanggal(tanggal, bulan, tahun);
-    //   }
-    // }
 
     //  CODE BACA JADWAL
     float lt = -7.803249;
@@ -484,7 +468,7 @@ void TaskMain(void *pvParameters) // This is a task.
     }
     if (compare == waktuMaghrib)
     {
-      // beep = 5;
+      beep = 5;
       alarmFlag = 8;
       /* code */
     }
@@ -515,9 +499,11 @@ void TaskMain(void *pvParameters) // This is a task.
         if (beep)
         {
           beep--;
+          Serial.println("buzer on");
           // digitalWrite(BUZER, HIGH);
           vTaskDelay(500);
-          digitalWrite(BUZER, LOW);
+          Serial.println("buzer off");
+          // digitalWrite(BUZER, LOW);
           vTaskDelay(500);
         }
         uint8_t blink = adzan % 2;
@@ -533,19 +519,82 @@ void TaskMain(void *pvParameters) // This is a task.
         timeBuffer[0] = iqomahCountDown / 60;
         timeBuffer[1] = iqomahCountDown % 60;
 
-        xQueueOverwrite(timeDisplay, (void *)&timeBuffer);
-        xQueueOverwrite(alarmQue, (void *)&alarmFlag);
-        delay(500);
-        alarmFlag = 0;
-        xQueueOverwrite(alarmQue, (void *)&alarmFlag);
-        delay(500);
+        // xQueueOverwrite(timeDisplay, (void *)&timeBuffer);
+        // xQueueOverwrite(alarmQue, (void *)&alarmFlag);
+        Serial.println("kedip off");
+        delay(100);
+        // alarmFlag = 0;
+        // xQueueOverwrite(alarmQue, (void *)&alarmFlag);
+        Serial.println("kedip on");
+        delay(100);
+        if (iqomahCountDown < 6)
+        {
+          Serial.println("buzer on");
+          vTaskDelay(500);
+          Serial.println("buzer off");
+          vTaskDelay(500);
+
+          // digitalWrite(BUZER,HIGH);
+          // digitalWrite(BUZER,LOW);
+        }
+      }
+
+      // CODE FOR STANBY
+      int stanby = 60 * 5;
+      while (stanby)
+      {
+        vTaskDelay(1000);
+        printf("stanbay sholat %d detik \n", stanby);
+        stanby--;
       }
     }
 
-    printf("Stak main = %d\n", uxTaskGetStackHighWaterMark(NULL));
+    // printf("Stak main = %d\n", uxTaskGetStackHighWaterMark(NULL));
     // printf("Heep main = %d\n", xPortGetFreeHeapSize());
     vTaskDelay(1000);
   }
 }
 //edit from KHS
 // sudo chmod a+rw /dev/ttyUSB0
+
+// UTIL
+
+// debug queue
+// Serial.print("Data Send = ");
+// for (int i = 0; i < 10; i++)
+// {
+//   Serial.print(timeBuffer[i]);
+//   if (i == 7)
+//   {
+//     Serial.println();
+//     break;
+//   }
+//   Serial.print(',');
+// }
+
+//get mutex
+// if (xSemaphoreTake(xMutex, (TickType_t)0xFFFFFFFF) == 1)
+// {
+//   xSemaphoreGive(xMutex);
+// }
+
+//monitor memory
+
+// printf("Stak android = %d\n", uxTaskGetStackHighWaterMark(NULL));
+// printf("Heep android = %d\n", xPortGetFreeHeapSize());
+
+// terima queue
+// if (xQueueReceive(setTime, (void *)&timeBuffer, portMAX_DELAY) != pdTRUE)
+// {
+
+//   jam = timeBuffer[0];
+//   menit = timeBuffer[1];
+//   detik = timeBuffer[2];
+//   hari = timeBuffer[3];
+//   tanggal = timeBuffer[4];
+//   bulan = timeBuffer[5];
+//   tahun = timeBuffer[6] * 100 + timeBuffer[7];
+
+//   Jam.setTime(jam, menit, detik);
+//   Jam.setTanggal(tanggal, bulan, tahun);
+// }
