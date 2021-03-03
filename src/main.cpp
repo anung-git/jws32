@@ -101,6 +101,15 @@ void setup()
   // }
 
   // Now set up two tasks to run independently.
+
+  dmd.clearScreen(true);
+  dmd.selectFont(Arial_Black_16);
+
+  // dmd.drawBox(0,0,15,60,0);
+  // Français, Österreich, Magyarország
+  const char *MSG = "Boom waw";
+  dmd.drawMarquee(MSG, strlen(MSG), (32 * DISPLAYS_ACROSS) - 60, 0);
+
   xTaskCreatePinnedToCore(
       TaskAndroid, "taskAndroid", // A name just for humans
       2048,                       // This stack size can be checked & adjusted by reading the Stack Highwater
@@ -115,7 +124,7 @@ void setup()
   xTaskCreatePinnedToCore(
       TaskScan, "taskScan", // A name just for humans
       3000,                 // This stack size can be checked & adjusted by reading the Stack Highwater
-      NULL, 2,              // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+      NULL, 1,              // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
       NULL, ARDUINO_RUNNING_CORE);
   xTaskCreatePinnedToCore(
       TaskMain, "taskMain", 3000, // Stack size
@@ -124,12 +133,12 @@ void setup()
 
   rtcMutex = xSemaphoreCreateMutex();
 
-  dmd.clearScreen(true);
   // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
 }
 
 void loop()
 {
+
   // Empty. Things are done in Tasks.
 }
 
@@ -137,16 +146,19 @@ void loop()
 /*---------------------- Tasks ---------------------*/
 /*--------------------------------------------------*/
 
+long start = millis();
+long timer = start;
 void TaskScan(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
 
   for (;;)
   {
-    // dmd.scanDisplayBySPI();
+
     // printf("Stak scandmd = %d\n", uxTaskGetStackHighWaterMark(NULL));
+    dmd.scanDisplayBySPI();
     // printf("Heep scandmd = %d\n", xPortGetFreeHeapSize());
-    // vTaskDelay(1000);
+    // vTaskDelay(1);
   }
 }
 void TaskAndroid(void *pvParameters) // This is a task.
@@ -181,6 +193,7 @@ void TaskDisplay(void *pvParameters) // This is a task.
   vTaskDelay(100);
   for (;;) // A Task shall never return or exit.
   {
+    // printf("Stak android = %d\n", uxTaskGetStackHighWaterMark(NULL));
     // if (xSemaphoreTake(xMutex, (TickType_t)0xFFFFFFFF) == 1)
     // {
     //   xSemaphoreGive(xMutex);
@@ -301,6 +314,11 @@ void TaskMain(void *pvParameters) // This is a task.
 {
   (void)pvParameters;
 
+  if ((timer + 30) < millis())
+  {
+    dmd.stepMarquee(-1, 0);
+    timer = millis();
+  }
   unsigned char jam, menit, detik;
   unsigned char tanggal, bulan, hari;
   int tahun;
@@ -319,11 +337,14 @@ void TaskMain(void *pvParameters) // This is a task.
   // Jam.setTanggal(28, 02, 2021);
   for (;;)
   {
+
     if (xSemaphoreTake(rtcMutex, (TickType_t)0xFFFFFFFF) == 1)
     {
+      printf("Baca rtc start \n");
       Jam.getTime(jam, menit, detik);
       Jam.getTanggal(hari, tanggal, bulan, tahun);
       xSemaphoreGive(rtcMutex);
+      printf("jam %d : %d : %d \n", jam, menit, detik);
     }
 
     timeBuffer[0] = jam;
@@ -422,7 +443,7 @@ void TaskMain(void *pvParameters) // This is a task.
     }
 
     // ALARM SHOLAT CODE
-    uint8_t beep;
+    uint8_t beep = 0;
     uint8_t alarmFlag = 0;
 
     if (compare == waktuImsya)
@@ -549,7 +570,7 @@ void TaskMain(void *pvParameters) // This is a task.
       }
     }
 
-    // printf("Stak main = %d\n", uxTaskGetStackHighWaterMark(NULL));
+    printf("Stak main = %d\n", uxTaskGetStackHighWaterMark(NULL));
     // printf("Heep main = %d\n", xPortGetFreeHeapSize());
     vTaskDelay(1000);
   }

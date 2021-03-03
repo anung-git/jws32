@@ -27,6 +27,13 @@ Modified by: Khudhur Alfarhan  // Qudoren@gmail.com
 --------------------------------------------------------------------------------------*/
 #include "DMD32.h"
 
+#include <ESP32DMASPIMaster.h>
+
+ESP32DMASPI::Master master;
+
+static const uint32_t BUFFER_SIZE = (4 << 2) + 1;
+uint8_t *spi_master_tx_buf;
+uint8_t *spi_master_rx_buf;
 /*--------------------------------------------------------------------------------------
  Setup and instantiation of DMD library
  Note this currently uses the SPI port for the fastest performance to the DMD, be
@@ -44,21 +51,37 @@ DMD::DMD(byte panelsWide, byte panelsHigh)
     row3 = ((DisplaysTotal << 2) * 3) << 2;
     bDMDScreenRAM = (byte *)malloc(DisplaysTotal * DMD_RAM_SIZE_BYTES);
 
+    /*
     //initialise instance of the SPIClass attached to vspi
     vspi = new SPIClass(VSPI);
 
     // initialize the SPI port
     vspi->begin(); // initiate VSPI with the default pinsinitiat VSPI with the defualt pins
 
-    digitalWrite(PIN_DMD_A, LOW);       //
-    digitalWrite(PIN_DMD_B, LOW);       //
+*/
+
+    // to use DMA buffer, use these methods to allocate buffer
+    spi_master_tx_buf = master.allocDMABuffer(BUFFER_SIZE);
+    spi_master_rx_buf = master.allocDMABuffer(BUFFER_SIZE);
+
+    master.setDataMode(SPI_MODE3); // for DMA, only 1 or 3 is available
+    // master.setFrequency(SPI_MASTER_FREQ_8M); // too fast for bread board...
+    master.setFrequency(4000000);
+    master.setMaxTransferSize(BUFFER_SIZE);
+    master.setDMAChannel(1); // 1 or 2 only
+    master.setQueueSize(1);  // transaction queue size
+    // begin() after setting
+    // HSPI = CS: 15, CLK: 14, MOSI: 13, MISO: 12
+    master.begin(); // default SPI is HSPI
+    // digitalWrite(PIN_DMD_A, LOW);       //
+    // digitalWrite(PIN_DMD_B, LOW);       //
     digitalWrite(PIN_DMD_CLK, LOW);     //
     digitalWrite(PIN_DMD_SCLK, LOW);    //
     digitalWrite(PIN_DMD_R_DATA, HIGH); //
     digitalWrite(PIN_DMD_nOE, LOW);     //
 
-    pinMode(PIN_DMD_A, OUTPUT);      //
-    pinMode(PIN_DMD_B, OUTPUT);      //
+    // pinMode(PIN_DMD_A, OUTPUT);      //
+    // pinMode(PIN_DMD_B, OUTPUT);      //
     pinMode(PIN_DMD_CLK, OUTPUT);    //
     pinMode(PIN_DMD_SCLK, OUTPUT);   //
     pinMode(PIN_DMD_R_DATA, OUTPUT); //
@@ -475,35 +498,53 @@ void DMD::drawTestPattern(byte bPattern)
 --------------------------------------------------------------------------------------*/
 void DMD::scanDisplayBySPI()
 {
-    uint8_t iobufer = bDMDByte;
 
     int rowsize = DisplaysTotal << 2;
     int offset = rowsize * bDMDByte;
-    vspi->beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
+
+    // vspi->beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
     for (int i = 0; i < rowsize; i++)
     {
 
         // vspi->transfer(bDMDScreenRAM[offset + i + row3]);
         // vspi->transfer(bDMDScreenRAM[offset + i + row2]);
         // vspi->transfer(bDMDScreenRAM[offset + i + row1]);
-        vspi->transfer(bDMDScreenRAM[offset + i]);
         // vspi->endTransaction();
+        // vspi->transfer(255 - bDMDScreenRAM[offset + i]);
+
+        spi_master_tx_buf[i] =  bDMDScreenRAM[offset + i];
     }
+    spi_master_tx_buf[17] = bDMDByte;
+    memset(spi_master_rx_buf, 0, BUFFER_SIZE);
 
-    OE_DMD_ROWS_OFF();
+    master.transfer(spi_master_tx_buf, spi_master_rx_buf, BUFFER_SIZE);
+    // OE_DMD_ROWS_ON();
+    // vspi->beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
+    // vspi->transfer(bDMDByte);
+    // shiftOut(0, 0, 0, 0);
+    // vspi->endTransaction();
+    // pinMode(PIN_DMD_CLK, OUTPUT);    //
+    // pinMode(PIN_DMD_SCLK, OUTPUT);   //
+    // pinMode(PIN_DMD_R_DATA, OUTPUT); //
+    // pinMode(PIN_DMD_nOE, OUTPUT);    //
+    // uint8_t data = bDMDByte;
+    // for (uint8_t i = 0; i < 8; i++)
+    // {
+
+    //     // digitalWrite(PIN_DMD_R_DATA, !!(data & (1 << (7 - i))));
+    //     digitalWrite(PIN_DMD_R_DATA, !!(data & (1 << (7 - i))));
+    //     digitalWrite(PIN_DMD_CLK, HIGH);
+    //     digitalWrite(PIN_DMD_CLK, LOW);
+    // }
+
     LATCH_DMD_SHIFT_REG_TO_OUTPUT();
+    OE_DMD_ROWS_OFF();
 
-    if (bDMDByte++ == 16)
+    if (++bDMDByte > 15)
     {
         bDMDByte = 0;
     }
-
-    OE_DMD_ROWS_OFF();
-    LATCH_DMD_SHIFT_REG_TO_OUTPUT();
-    // vspi->beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
-    vspi->transfer(iobufer);
-    vspi->endTransaction();
-    OE_DMD_ROWS_ON();
+    // bDMDByte = 2;
     /* code 
     //if PIN_OTHER_SPI_nCS is in use during a DMD scan request then scanDisplayBySPI() will exit without conflict! (and skip that scan)
     if (digitalRead(PIN_OTHER_SPI_nCS) == HIGH)

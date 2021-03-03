@@ -75,8 +75,9 @@ void Rtc::getTanggal(unsigned char &hari, unsigned char &tanggal,unsigned char &
 }
 Rtc::Rtc()
 {
-    // Wire.begin(21,22);
-    Wire.begin();
+    Wire.begin(32,33,100000);
+    // Wire.begin(33,32);
+    // Wire.begin();
 }
 
 Rtc::~Rtc()
