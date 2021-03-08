@@ -1,22 +1,34 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class BluetoothDriver {
   List<String> command = [
-    "OKJ\n",
+    "OKJ\n", //jam
+    "OKI\n", //Iqomah
+    "OKT\n", //tarhim
+    "OKB\n", //brightness
+    "OKF\n", //offsite
+    "OKX\n", //fix
+    "OKK\n", //kota
+    "OKA\n", //adzan
+    "OKW\n", //mp3
     "OKS\n",
-    "OKI\n",
-    "OKT\n",
-    "OKB\n",
-    "OKF\n",
-    "OKX\n",
-    "OKK\n",
-    "OKA\n",
-    "OKW\n",
+  ];
+  List<String> cmdOK = [
+    "SINKRON WAKTU SUKSES",
+    "SET IQOMAH SUKSES",
+    "SET TARHIM SUKSES",
+    "SET BRIGTNES SUKSES",
+    "SET OFFSITE SUKSES",
+    "SET FIX SUKSES",
+    "SET KOTA SUKSES",
+    "SET TIMEOUT ADZAN SUKSES",
+    "SUKSES",
+    "SUKSES",
   ];
   List<String> datafinish = [
-    "SetPlay\n",
     "SetTime\n",
     "SetIqom\n",
     "SetTrkm\n",
@@ -25,69 +37,94 @@ class BluetoothDriver {
     "SetFixx\n",
     "SetKoor\n",
     "SetAlrm\n",
+    "SetPlay\n",
   ];
+//boolean
+  bool isConnecting = true;
+  bool isDisconnecting = false;
+  //integer
+  // int _discoverableTimeoutSecondsLeft = 0;
+  static final clientID = 0;
+
+  //String
   String cmd = "";
   String data = "";
   String terimaData = "";
-
-  int _discoverableTimeoutSecondsLeft = 0;
-  BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
+  // String _address = "...";
+  // String _name = "...";
+  // String _messageBuffer = '';
+  var context;
+  //class
+  // BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
   BluetoothConnection connection;
-  bool isConnecting = true;
-  bool get isConnected => connection != null && connection.isConnected;
-  bool koneksi = false;
-  bool get terhubung => koneksi;
-  bool isDisconnecting = false;
-  String _address = "...";
-  String _name = "...";
-  String _messageBuffer = '';
-  static final clientID = 0;
+
+  //getter
+  bool isConnected() {
+    if (connection == null) {
+      return false;
+    } else {
+      if (connection.isConnected == null) {
+        return false;
+      } else {
+        return connection.isConnected;
+      }
+    }
+    // return connection == null ? false : connection.isConnected;
+  }
+
+  void cekKoneksi() async {
+    print("status koneksi");
+    print(connection.isConnected);
+    // await connection.close();
+    print("status koneksi setelah close");
+    print(connection.isConnected);
+  }
+
+//constructor
   BluetoothDriver() {
     // Get current state
     FlutterBluetoothSerial.instance.state.then((state) async {
-      _bluetoothState = state;
-      // setState(() {
-      // });
+      // _bluetoothState = state;
       if (state.isEnabled == false) {
         await FlutterBluetoothSerial.instance.requestEnable();
       }
     });
 
-    Future.doWhile(() async {
-      // Wait if adapter not enabled
-      if (await FlutterBluetoothSerial.instance.isEnabled) {
-        return false;
-      }
-      await Future.delayed(Duration(milliseconds: 0xDD));
-      return true;
-    }).then((_) {
-      // Update the address field
-      FlutterBluetoothSerial.instance.address.then((address) {
-        _address = address;
-        // setState(() {
-        // });
-      });
-    });
+    // Future.doWhile(() async {
+    //   // Wait if adapter not enabled
+    //   if (await FlutterBluetoothSerial.instance.isEnabled) {
+    //     return false;
+    //   }
+    //   await Future.delayed(Duration(milliseconds: 0xDD));
+    //   return true;
+    // }).then((_) {
+    // Update the address field
+    // FlutterBluetoothSerial.instance.address.then((address) {
+    //   String _address = address;
+    //   // setState(() {
+    //   // });
+    // });
+    // });
 
-    FlutterBluetoothSerial.instance.name.then((name) {
-      _name = name;
-      // setState(() {
-      // });
-    });
+    // FlutterBluetoothSerial.instance.name.then((name) {
+    //   String _name = name;
+    //   // setState(() {
+    //   // });
+    // });
 
     // Listen for futher state changes
-    FlutterBluetoothSerial.instance
-        .onStateChanged()
-        .listen((BluetoothState state) {
-      _bluetoothState = state;
-      // Discoverable mode is disabled when Bluetooth gets disabled
-      // _discoverableTimeoutTimer = null;
-      _discoverableTimeoutSecondsLeft = 0;
-      // setState(() {
-      // });
-    });
+    // FlutterBluetoothSerial.instance
+    //     .onStateChanged()
+    //     .listen((BluetoothState state) {
+    // _bluetoothState = state;
+    // Discoverable mode is disabled when Bluetooth gets disabled
+    // _discoverableTimeoutTimer = null;
+    // _discoverableTimeoutSecondsLeft = 0;
+    // setState(() {
+    // });
+    // });
   }
-
+  //method / Fungsi
   Future sendMessage(String text) async {
     text = text.trim();
 
@@ -102,14 +139,14 @@ class BluetoothDriver {
     }
   }
 
-  Future setting(String cmd, String data) async {
+  Future setting(var context, String cmd, String data) async {
+    this.context = context;
     this.cmd = cmd;
     this.data = data;
     await this.sendMessage("1234");
   }
 
   void request(String data) {
-    // print(data);
     //start command
     if (data == "OK\n") {
       this.sendMessage(this.cmd);
@@ -123,15 +160,29 @@ class BluetoothDriver {
       });
     }
     //finish command
+    // erer
     else if (datafinish.contains(data)) {
       datafinish.forEach((element) {
         if (element == data) {
-          print("setting suksess");
+          String msg = cmdOK[datafinish.indexOf(element)];
+          showSnackBar(this.context, msg);
+          // print("kok error sihh");
+          // print(msg);
         }
       });
     } else {
+      showSnackBar(this.context, "COMMAND ERROR");
       print("command error");
     }
+  }
+
+  void showSnackBar(var context, String msg) {
+    final snackBar = SnackBar(
+        content: Text(
+      msg,
+      textAlign: TextAlign.center,
+    ));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void _onDataReceived(Uint8List data) {
@@ -168,16 +219,17 @@ class BluetoothDriver {
     }
   }
 
-  void connect(final BluetoothDevice server) {
-    BluetoothConnection.toAddress(server.address).then((_connection) {
+  Future connect(final BluetoothDevice server) async {
+    if (connection != null && connection.isConnected == true) {
+      await connection.close();
+    }
+    await BluetoothConnection.toAddress(server.address).then((_connection) {
       print('Connected to the device');
-      koneksi = true;
       connection = _connection;
       isConnecting = false;
       isDisconnecting = false;
-      // setState(() {
-      // });
 
+      // connection.input.any((element) => false);
       connection.input.listen(_onDataReceived).onDone(() {
         // Example: Detect which side closed the connection
         // There should be `isDisconnecting` flag to show are we are (locally)
@@ -186,10 +238,8 @@ class BluetoothDriver {
         // If we except the disconnection, `onDone` should be fired as result.
         // If we didn't except this (no flag set), it means closing by remote.
         if (isDisconnecting) {
-          koneksi = false;
           print('Disconnecting locally!');
         } else {
-          koneksi = false;
           print('Disconnected remotely!');
         }
         // if (this.mounted) {

@@ -74,6 +74,7 @@ class _DiscoveryPage extends State<DiscoveryPage> {
             ? Text('Mencari perangkat')
             : Text('Perangkat ditemukan'),
         actions: <Widget>[
+          IconButton(icon: Icon(Icons.info_outline), onPressed: () {}),
           isDiscovering
               ? FittedBox(
                   child: Container(
