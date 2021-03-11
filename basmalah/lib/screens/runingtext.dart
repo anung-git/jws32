@@ -57,13 +57,13 @@ class _RunningTextState extends State<RunningText> {
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: TextFormField(
                         minLines: 20, //Normal textInputField will be displayed
-                        maxLines: 30,
+                        maxLines: 21,
                         maxLength: 500,
                         controller: textcontroller1,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: "Running Text 1",
-                          hintText: "tulis text 1 di sini",
+                          labelText: "Running Text",
+                          hintText: "tulis text di sini",
                         ),
                       )),
                   Container(

@@ -1,10 +1,16 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:basmalah/providers/home_view_model.dart';
+import 'package:basmalah/screens/brightnes.dart';
+import 'package:basmalah/screens/lokasi.dart';
 import 'package:basmalah/screens/runingtext.dart';
+import 'package:basmalah/screens/set_fix.dart';
+import 'package:basmalah/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:grafpix/icons.dart';
+
+import 'koreksi_jadwal.dart';
 
 class Home extends StatefulWidget {
   Home({Key key, this.title}) : super(key: key);
@@ -41,8 +47,11 @@ class _HomeState extends State<Home> {
                     icon: Icon(model.bluetoothIsConnect == true
                         ? Icons.bluetooth
                         : Icons.bluetooth_disabled),
-                    onPressed: () {
-                      model.hubungkan(context);
+                    onPressed: () async {
+                      bool hasil = await model.btSerial.hubungkan(context);
+                      if (hasil == true) {
+                        setState(() {});
+                      }
                     })
               ],
             ),
@@ -57,9 +66,13 @@ class _HomeState extends State<Home> {
                       gambar: Icons.sync, //PixIcon.fa_sync,
                       text: 'Sinkronisasi waktu',
                       warna: Colors.green,
-                      onClick: () {
+                      onClick: () async {
                         if (model.bluetoothIsConnect == false) {
-                          model.hubungkan(context);
+                          bool connect =
+                              await model.btSerial.hubungkan(context);
+                          if (connect == true) {
+                            setState(() {});
+                          }
                         } else {
                           AwesomeDialog(
                               context: context,
@@ -95,13 +108,31 @@ class _HomeState extends State<Home> {
                       gambar: PixIcon.fa_map_marked_alt,
                       text: 'Seting Kota',
                       warna: Colors.red,
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Lokasi(
+                              blue: model.btSerial,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: PixIcon.pix_brightness_contrast,
                       warna: Colors.yellow,
                       text: 'Kecerahan',
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Brightnes(
+                              blue: model.btSerial,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: PixIcon.pix_alarm,
@@ -113,7 +144,15 @@ class _HomeState extends State<Home> {
                       gambar: PixIcon.fa_mosque,
                       warna: Colors.purple,
                       text: 'Iqomah',
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SetFix(
+                                    blue: model.btSerial,
+                                  )),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: PixIcon.fa_quran,
@@ -125,7 +164,15 @@ class _HomeState extends State<Home> {
                       gambar: PixIcon.calendar_wall,
                       warna: Colors.brown,
                       text: 'Koreksi Jadwal',
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => KoreksiJadwal(
+                                    blue: model.btSerial,
+                                  )),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: PixIcon.pix_stopwatch,
@@ -149,7 +196,15 @@ class _HomeState extends State<Home> {
                       gambar: Icons.settings,
                       warna: Colors.blueGrey,
                       text: 'Pengaturan',
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SettingsScreen(
+                                  // blue: model.btSerial,
+                                  )),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -177,8 +232,8 @@ class Menu extends StatelessWidget {
     return new Center(
       child: new Container(
         margin: EdgeInsets.all(1.50),
-        // color: Colors.black12,
-        color: Colors.white10,
+        color: Colors.black12,
+        // color: Colors.white10,
         // borderRadius: BorderRadius.all(Radius.circular(10)),
         // child: new Material(
         child: new InkWell(

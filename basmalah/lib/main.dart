@@ -12,8 +12,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Basmalah JWS',
       theme: ThemeData(
-        // colorScheme: randomColorSchemeLight(),
-        colorScheme: randomColorSchemeDark(),
+        colorScheme: randomColorSchemeLight(shouldPrint: false),
+        // colorScheme: randomColorSchemeDark(),
         // colorScheme: randomColorScheme(),
         // primarySwatch: Colors.blue,
       ),

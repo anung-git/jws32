@@ -9,44 +9,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 SharedPreferences prefs;
 
 class Memori {
-  setBool(String key, bool value) async {
+  Future<void> setBool(String key, bool value) async {
     prefs = await SharedPreferences.getInstance();
     prefs.setBool(key, value);
   }
 
-  setInt(String key, int value) async {
-    print('menulis int dg key = $key dan value = $value');
+  Future<void> setInt(String key, int value) async {
+    // print('menulis int dg key = $key dan value = $value');
     prefs = await SharedPreferences.getInstance();
     prefs.setInt(key, value);
   }
 
-  setDouble(String key, double value) async {
+  Future<void> setDouble(String key, double value) async {
     prefs = await SharedPreferences.getInstance();
     prefs.setDouble(key, value);
   }
 
-  setString(String key, String value) async {
+  Future setString(String key, String value) async {
     prefs = await SharedPreferences.getInstance();
     prefs.setString(key, value);
   }
   //=================================================================
 
-  getString(String key) async {
+  Future<String> getString(String key) async {
     prefs = await SharedPreferences.getInstance();
     //Return String
     String stringValue = prefs.getString(key) ?? '';
     return stringValue;
   }
 
-  getBool(String key) async {
+  Future<bool> getBool(String key) async {
     prefs = await SharedPreferences.getInstance();
     //Return bool
     bool boolValue = prefs.getBool(key) ?? false;
     return boolValue;
   }
 
-  getInt(String key) async {
-    print('mengambil int dg key = $key');
+  Future<int> getInt(String key) async {
+    // print('mengambil int dg key = $key');
     prefs = await SharedPreferences.getInstance();
     //Return int
     int intValue = prefs.getInt(key) ?? 0;

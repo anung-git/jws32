@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:basmalah/screens/DiscoveryPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
@@ -34,7 +35,7 @@ class BluetoothDriver {
     "SetTrkm\n",
     "SetBrns\n",
     "SetOffs\n",
-    "SetFixx\n",
+    "SetFixx\n", //SetFixx\n"
     "SetKoor\n",
     "SetAlrm\n",
     "SetPlay\n",
@@ -70,14 +71,6 @@ class BluetoothDriver {
       }
     }
     // return connection == null ? false : connection.isConnected;
-  }
-
-  void cekKoneksi() async {
-    print("status koneksi");
-    print(connection.isConnected);
-    // await connection.close();
-    print("status koneksi setelah close");
-    print(connection.isConnected);
   }
 
 //constructor
@@ -124,6 +117,33 @@ class BluetoothDriver {
     // });
     // });
   }
+
+  Future<bool> hubungkan(var context) async {
+    await FlutterBluetoothSerial.instance.state.then((state) async {
+      if (state.isEnabled == false) {
+        await FlutterBluetoothSerial.instance.requestEnable();
+        // notifyListeners();
+      }
+    });
+    final BluetoothDevice selectedDevice = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) {
+          return DiscoveryPage();
+        },
+      ),
+    );
+
+    if (selectedDevice != null) {
+      // print('Connect -> selected ' + selectedDevice.address);
+      //menghubungkan ke devices
+      await this.connect(selectedDevice);
+      return true;
+    } else {
+      return false;
+      // notifyListeners();
+    }
+  }
+
   //method / Fungsi
   Future sendMessage(String text) async {
     text = text.trim();
@@ -139,7 +159,7 @@ class BluetoothDriver {
     }
   }
 
-  Future setting(var context, String cmd, String data) async {
+  Future setting(BuildContext context, String cmd, String data) async {
     this.context = context;
     this.cmd = cmd;
     this.data = data;
@@ -166,8 +186,8 @@ class BluetoothDriver {
         if (element == data) {
           String msg = cmdOK[datafinish.indexOf(element)];
           showSnackBar(this.context, msg);
-          // print("kok error sihh");
-          // print(msg);
+          print("kok error sihh");
+          print(msg);
         }
       });
     } else {
@@ -176,7 +196,8 @@ class BluetoothDriver {
     }
   }
 
-  void showSnackBar(var context, String msg) {
+  void showSnackBar(BuildContext context, String msg) {
+    print("show snackbar = " + msg);
     final snackBar = SnackBar(
         content: Text(
       msg,
