@@ -5,42 +5,14 @@ import 'package:basmalah/services/btHelper.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-class Lokasi extends StatefulWidget {
-  Lokasi({Key key, this.blue}) : super(key: key);
+class Iqomah extends StatefulWidget {
+  Iqomah({Key key, this.blue}) : super(key: key);
   final BluetoothDriver blue;
   @override
-  _LokasiState createState() => _LokasiState();
+  _IqomahState createState() => _IqomahState();
 }
 
-class _LokasiState extends State<Lokasi> {
-  Future<TimeOfDay> setJamx(var contex, TimeOfDay initTime) async {
-    TimeOfDay hasil = await showTimePicker(
-      context: context,
-      initialTime: initTime,
-      // TimeOfDay.now(), //TimeOfDay(hour: 10, minute: 47),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              // change the border color
-              primary: Colors.pink,
-              // change the text color
-              onSurface: Colors.purple,
-            ),
-            // button colors
-            buttonTheme: ButtonThemeData(
-              colorScheme: ColorScheme.light(
-                primary: Colors.green,
-              ),
-            ),
-          ),
-          child: child,
-        );
-      },
-    );
-    return hasil == null ? initTime : hasil;
-  }
-
+class _IqomahState extends State<Iqomah> {
   @override
   Widget build(BuildContext context) {
     return Builder(builder: (BuildContext context) {
@@ -53,16 +25,9 @@ class _LokasiState extends State<Lokasi> {
                 backgroundColor: model.warnaAppBar,
                 centerTitle: true,
                 title: Text(
-                  'Lokasi',
+                  'Iqomah',
                   // style: kTextStyleBold,
                 ),
-                actions: [
-                  IconButton(
-                      icon: Icon(Icons.location_searching),
-                      onPressed: () async {
-                        await model.searchLokasi();
-                      })
-                ],
               ),
               resizeToAvoidBottomInset: false,
               body: Container(
@@ -78,7 +43,7 @@ class _LokasiState extends State<Lokasi> {
                           padding: EdgeInsets.only(top: 15, bottom: 10),
                           child: Center(
                             child: Text(
-                              "Pengaturan Lokasi",
+                              "Pengaturan Iqomah",
                               style: TextStyle(
                                   color: model.warnaJudul,
                                   fontSize: 22,
@@ -118,7 +83,7 @@ class _LokasiState extends State<Lokasi> {
                                 child: TextField(
                                   controller: model.longitudeControler,
                                   decoration: InputDecoration(
-                                    hintText: "Longitude...",
+                                    hintText: "Lama sholat...",
                                     hintStyle: TextStyle(
                                       color: Colors.purple,
                                       fontStyle: FontStyle.italic,

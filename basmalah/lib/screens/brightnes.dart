@@ -118,6 +118,26 @@ class _BrightnesState extends State<Brightnes> {
     );
   }
 
+  void _showFontSizePickerDialog() async {
+    // <-- note the async keyword here
+
+    // this will contain the result from Navigator.pop(context, result)
+    final selectedFontSize = await showDialog<double>(
+      context: context,
+      builder: (context) => FontSizePickerDialog(initialFontSize: 10),
+    );
+
+    // execution of this code continues when the dialog was closed (popped)
+
+    // note that the result can also be null, so check it
+    // (back button or pressed outside of the dialog)
+    if (selectedFontSize != null) {
+      setState(() {
+        // _fontSize = selectedFontSize;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Builder(builder: (BuildContext context) {
@@ -142,6 +162,8 @@ class _BrightnesState extends State<Brightnes> {
                   child: Container(
                     margin: EdgeInsets.only(
                       bottom: 20,
+                      left: 3,
+                      right: 3,
                     ),
                     child: Column(
                       // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -219,6 +241,7 @@ class _BrightnesState extends State<Brightnes> {
                                     ),
                                     GestureDetector(
                                       onTap: () async {
+                                        _showFontSizePickerDialog();
                                         // AwesomeDialog(
                                         //     context: context,
                                         //     headerAnimationLoop: false,
@@ -278,26 +301,91 @@ class _BrightnesState extends State<Brightnes> {
                           ),
                         ),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                model.kirim(context, widget.blue);
-                              },
-                              child: Text("Kirim"),
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.pink,
-                                onPrimary: Colors.white,
-                                onSurface: Colors.grey,
-                                textStyle: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 30,
-                                ),
-                              ),
+                            Container(
+                              margin: EdgeInsets.all(10),
+                              height: 50.0,
+                              width: 130,
+                              child: TextButton(
+                                  child: Text("Batal",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        // fontWeight: FontWeight.bold,
+                                      )),
+                                  style: ButtonStyle(
+                                      padding:
+                                          MaterialStateProperty.all<EdgeInsets>(
+                                              EdgeInsets.all(15)),
+                                      foregroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              Colors.orange),
+                                      backgroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              Colors.pink),
+                                      shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.zero,
+                                              side:
+                                                  BorderSide(color: Colors.red)))),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  }),
+                              // TextButton(
+                              //     onPressed: () {},
+                              //     child: Text(
+                              //       'Text Button',
+                              //     ),
+                              //     style: ButtonStyle(
+                              //         side: MaterialStateProperty.all(
+                              //             BorderSide(
+                              //                 width: 2, color: Colors.red)),
+                              //         backgroundColor:
+                              //             MaterialStateProperty.all(
+                              //                 Colors.pink),
+                              //         foregroundColor:
+                              //             MaterialStateProperty.all(
+                              //                 Colors.purple),
+                              //         // padding: MaterialStateProperty.all(
+                              //         //     EdgeInsets.symmetric(
+                              //         //         vertical: 10, horizontal: 50)),
+                              //         textStyle: MaterialStateProperty.all(
+                              //             TextStyle(fontSize: 20)))),
+
+                              // RaisedButton(
+                              //   shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(0.0),
+                              //       side: BorderSide(
+                              //           color: Color.fromRGBO(0, 160, 227, 1))),
+                              //   onPressed: () {},
+                              //   padding: EdgeInsets.all(10.0),
+                              //   color: Color.fromRGBO(0, 160, 227, 1),
+                              //   textColor: Colors.white,
+                              //   child: Text("Batal",
+                              //       style: TextStyle(fontSize: 20)),
+                              // ),
                             ),
                             Container(
-                              width: 10,
-                            )
+                              margin: EdgeInsets.all(10),
+                              height: 50.0,
+                              width: 130,
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0.0),
+                                    side: BorderSide(color: Colors.pink[600])),
+                                // color: Color.fromRGBO(0, 160, 227, 1))),
+                                onPressed: () {},
+                                padding: EdgeInsets.all(10.0),
+                                color: Colors
+                                    .pink //Color.fromRGBO(0, 160, 227, 1),
+                                ,
+                                textColor: Colors.white,
+                                child: Text("Kirim",
+                                    style: TextStyle(fontSize: 20)),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -308,5 +396,59 @@ class _BrightnesState extends State<Brightnes> {
             );
           });
     });
+  }
+}
+
+// move the dialog into it's own stateful widget.
+// It's completely independent from your page
+// this is good practice
+class FontSizePickerDialog extends StatefulWidget {
+  /// initial selection for the slider
+  final double initialFontSize;
+
+  const FontSizePickerDialog({Key key, this.initialFontSize}) : super(key: key);
+
+  @override
+  _FontSizePickerDialogState createState() => _FontSizePickerDialogState();
+}
+
+class _FontSizePickerDialogState extends State<FontSizePickerDialog> {
+  /// current selection of the slider
+  double _fontSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _fontSize = widget.initialFontSize;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Font Size'),
+      content: Container(
+        child: Slider(
+          value: _fontSize,
+          min: 0,
+          max: 7,
+          divisions: 1,
+          onChanged: (value) {
+            setState(() {
+              _fontSize = value;
+            });
+          },
+        ),
+      ),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () {
+            // Use the second argument of Navigator.pop(...) to pass
+            // back a result to the page that opened the dialog
+            Navigator.pop(context, _fontSize);
+          },
+          child: Text('DONE'),
+        )
+      ],
+    );
   }
 }

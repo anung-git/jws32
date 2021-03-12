@@ -5,7 +5,7 @@ import 'package:geocoder/geocoder.dart';
 import 'package:stacked/stacked.dart';
 import 'package:location/location.dart';
 
-class LokasiViewModel extends BaseViewModel {
+class IqomahViewModel extends BaseViewModel {
   BluetoothDriver bluetooth;
 
   double latitude = 0; // _locationData.latitude;

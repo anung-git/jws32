@@ -1,54 +1,27 @@
 import 'dart:ui';
 
 import 'package:basmalah/providers/set_fix_view_model.dart';
+import 'package:basmalah/providers/tartil_view_model.dart';
 import 'package:basmalah/services/btHelper.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-class SetFix extends StatefulWidget {
-  SetFix({Key key, this.blue}) : super(key: key);
+class Tartil extends StatefulWidget {
+  Tartil({Key key, this.blue}) : super(key: key);
   final BluetoothDriver blue;
   @override
-  _SetFixState createState() => _SetFixState();
+  _TartilState createState() => _TartilState();
 }
 
 //seting sesuai init terahir
 // bila null return terahir
 
-class _SetFixState extends State<SetFix> {
-  Future<TimeOfDay> setJamx(var contex, TimeOfDay initTime) async {
-    TimeOfDay hasil = await showTimePicker(
-      context: context,
-      initialTime: initTime,
-      // TimeOfDay.now(), //TimeOfDay(hour: 10, minute: 47),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              // change the border color
-              primary: Colors.pink,
-              // change the text color
-              onSurface: Colors.purple,
-            ),
-            // button colors
-            buttonTheme: ButtonThemeData(
-              colorScheme: ColorScheme.light(
-                primary: Colors.green,
-              ),
-            ),
-          ),
-          child: child,
-        );
-      },
-    );
-    return hasil == null ? initTime : hasil;
-  }
-
+class _TartilState extends State<Tartil> {
   @override
   Widget build(BuildContext context) {
     return Builder(builder: (BuildContext context) {
-      return ViewModelBuilder<SetFixViewModel>.reactive(
-          viewModelBuilder: () => SetFixViewModel(),
+      return ViewModelBuilder<TartilViewModel>.reactive(
+          viewModelBuilder: () => TartilViewModel(),
           onModelReady: (model) => model.init(widget.blue),
           builder: (context, model, chaild) {
             return Scaffold(
@@ -56,7 +29,7 @@ class _SetFixState extends State<SetFix> {
                 backgroundColor: model.warnaAppBar,
                 centerTitle: true,
                 title: Text(
-                  'Fix Jadwal',
+                  'Tartil',
                   // style: kTextStyleBold,
                 ),
               ),
@@ -79,7 +52,7 @@ class _SetFixState extends State<SetFix> {
                           padding: EdgeInsets.only(top: 15, bottom: 10),
                           child: Center(
                             child: Text(
-                              "Pengaturan Fix Jadwal",
+                              "Pengaturan Tartil",
                               style: TextStyle(
                                   color: model.warnaJudul,
                                   fontSize: 22,
@@ -118,9 +91,15 @@ class _SetFixState extends State<SetFix> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: <Widget>[
-                                        Container(
-                                          width: 20,
-                                        ),
+                                        Checkbox(
+                                            value: model.flag[index],
+                                            onChanged: (bool value) async {
+                                              await model.enable(index, value);
+                                              // print(value);
+                                            }),
+                                        // value: rememberMe,
+                                        // onChanged: _onRememberMeChanged
+                                        // );
                                         Text(
                                           model.sholat[index],
                                           style: TextStyle(
@@ -140,12 +119,12 @@ class _SetFixState extends State<SetFix> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: <Widget>[
-                                        Switch(
-                                            value: model.flag[index],
-                                            onChanged: (bool value) async {
-                                              await model.enable(index, value);
-                                              // print(value);
-                                            }),
+                                        // Switch(
+                                        //     value: model.flag[index],
+                                        //     onChanged: (bool value) async {
+                                        //       await model.enable(index, value);
+                                        //       // print(value);
+                                        //     }),
                                         VerticalDivider(
                                           thickness: 3,
                                           color: Colors.grey,
@@ -154,14 +133,10 @@ class _SetFixState extends State<SetFix> {
                                         ),
                                         GestureDetector(
                                           onTap: () async {
-                                            TimeOfDay init =
-                                                model.getInit(index);
-                                            TimeOfDay waktu =
-                                                await setJamx(context, init);
-                                            model.save(index, waktu);
+                                            // model.save(index);
                                           },
                                           child: Text(
-                                            model.fix[index],
+                                            model.tartil[index] + " menit",
                                             style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 20,
@@ -200,13 +175,11 @@ class _SetFixState extends State<SetFix> {
                                     borderRadius: BorderRadius.circular(0.0),
                                     side: BorderSide(
                                         color: Color.fromRGBO(0, 160, 227, 1))),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
+                                onPressed: () {},
                                 padding: EdgeInsets.all(10.0),
                                 color: Color.fromRGBO(0, 160, 227, 1),
                                 textColor: Colors.white,
-                                child: Text("Batal",
+                                child: Text("Play",
                                     style: TextStyle(fontSize: 20)),
                               ),
                             ),

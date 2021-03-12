@@ -1,10 +1,12 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:basmalah/providers/home_view_model.dart';
 import 'package:basmalah/screens/brightnes.dart';
+import 'package:basmalah/screens/iqomah.dart';
 import 'package:basmalah/screens/lokasi.dart';
 import 'package:basmalah/screens/runingtext.dart';
 import 'package:basmalah/screens/set_fix.dart';
 import 'package:basmalah/screens/settings_screen.dart';
+import 'package:basmalah/screens/tartil.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -148,17 +150,25 @@ class _HomeState extends State<Home> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SetFix(
+                              builder: (context) => Iqomah(
                                     blue: model.btSerial,
                                   )),
                         );
                       },
                     ),
                     Menu(
-                      gambar: PixIcon.fa_quran,
-                      warna: Colors.orange,
-                      text: 'Tartil',
-                      onClick: () {},
+                      gambar: PixIcon.typcn_sort_numerically_outline,
+                      warna: Colors.pink,
+                      text: 'Fix Jadwal',
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SetFix(
+                                    blue: model.btSerial,
+                                  )),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: PixIcon.calendar_wall,
@@ -190,7 +200,15 @@ class _HomeState extends State<Home> {
                       gambar: PixIcon.pix_volume_high,
                       warna: Colors.redAccent,
                       text: 'Tartil',
-                      onClick: () {},
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => Tartil(
+                                    blue: model.btSerial,
+                                  )),
+                        );
+                      },
                     ),
                     Menu(
                       gambar: Icons.settings,

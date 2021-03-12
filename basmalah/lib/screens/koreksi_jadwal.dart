@@ -42,9 +42,7 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
               padding: EdgeInsets.all(10),
               child: Card(
                 child: Container(
-                  margin: EdgeInsets.only(
-                    bottom: 20,
-                  ),
+                  margin: EdgeInsets.only(bottom: 20, left: 3, right: 3),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -81,14 +79,10 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
                                   : model.warnaEvent,
                               // height: 55,
                               child: Row(
-                                // mainAxisSize: MainAxisAlignment.spaceAround,
-                                //Ini di pakai
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: <Widget>[
                                   Row(
-                                    mainAxisSize: MainAxisSize.max,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.center,
                                     children: <Widget>[
@@ -105,9 +99,6 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
                                             fontSize: 20),
                                         textAlign: TextAlign.left,
                                       ),
-                                      Container(
-                                        width: 20,
-                                      )
                                     ],
                                   ),
                                   Row(
@@ -115,9 +106,8 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
                                         CrossAxisAlignment.center,
                                     children: <Widget>[
                                       VerticalDivider(
-                                        // width: 10,
-                                        thickness: 3,
                                         color: Colors.grey,
+                                        thickness: 3,
                                         indent: 7,
                                         endIndent: 7,
                                       ),
@@ -134,12 +124,17 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
                                           model.decr(index);
                                         },
                                       ),
-                                      Text(
-                                        model.value[index].toString(),
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
-                                            color: Colors.grey[700]),
+                                      Container(
+                                        width: 20,
+                                        child: Center(
+                                          child: Text(
+                                            model.value[index].toString(),
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                                color: Colors.grey[700]),
+                                          ),
+                                        ),
                                       ),
                                       IconButton(
                                         icon: Icon(
@@ -174,26 +169,48 @@ class _KoreksiJadwalState extends State<KoreksiJadwal> {
                         ),
                       ),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              model.kirim(context, widget.blue);
-                            },
-                            child: Text("Kirim"),
-                            style: ElevatedButton.styleFrom(
-                              primary: Colors.pink,
-                              onPrimary: Colors.white,
-                              onSurface: Colors.grey,
-                              textStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 30,
-                              ),
+                          Container(
+                            margin: EdgeInsets.all(10),
+                            height: 50.0,
+                            width: 140,
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0.0),
+                                  side: BorderSide(
+                                      color: Color.fromRGBO(0, 160, 227, 1))),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              padding: EdgeInsets.all(10.0),
+                              color: Color.fromRGBO(0, 160, 227, 1),
+                              textColor: Colors.white,
+                              child:
+                                  Text("Batal", style: TextStyle(fontSize: 20)),
                             ),
                           ),
                           Container(
-                            width: 10,
-                          )
+                            margin: EdgeInsets.all(10),
+                            height: 50.0,
+                            width: 140,
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0.0),
+                                  side: BorderSide(color: Colors.pink[600])),
+                              // color: Color.fromRGBO(0, 160, 227, 1))),
+                              onPressed: () {
+                                model.kirim(context, widget.blue);
+                              },
+                              padding: EdgeInsets.all(10.0),
+                              color:
+                                  Colors.pink //Color.fromRGBO(0, 160, 227, 1),
+                              ,
+                              textColor: Colors.white,
+                              child:
+                                  Text("Kirim", style: TextStyle(fontSize: 20)),
+                            ),
+                          ),
                         ],
                       ),
                     ],

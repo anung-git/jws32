@@ -30,7 +30,7 @@ class BrightnesViewModel extends BaseViewModel {
 
   init(BluetoothDriver blue) async {
     this.bluetooth = blue;
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 4; i++) {
       bright[i] = await _eprom.getInt("brightnes" + i.toString()) ?? 5;
     }
     notifyListeners();

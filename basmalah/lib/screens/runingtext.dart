@@ -35,60 +35,109 @@ class _RunningTextState extends State<RunningText> {
     return Scaffold(
       appBar: AppBar(
         title: Text('running text'),
-        // backgroundColor: Colors.pink,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Text(
-            //   "What is this new classroom?",
-            // ),
-            SizedBox(
-              height: 8.0,
-            ),
-            Expanded(
-              child: Form(
-                child:
-                    ListView(padding: EdgeInsets.all(8.0), children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: TextFormField(
-                        minLines: 20, //Normal textInputField will be displayed
-                        maxLines: 21,
-                        maxLength: 500,
-                        controller: textcontroller1,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Running Text",
-                          hintText: "tulis text di sini",
-                        ),
-                      )),
-                  Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          height: 30.0,
-                        ),
-                        OutlinedButton(
-                          onPressed: () {
-                            if (textcontroller1.text.isNotEmpty) {}
-                            widget.blue
-                                .setting(context, "%S", textcontroller1.text);
-                          },
-                          child: Text("Kirim"),
-                          // style: ButtonStyle(backgroundColor: Colors.black),
-                        )
-                      ],
+      body: Container(
+        color: Colors.pink[100],
+        padding: EdgeInsets.all(10),
+        child: Card(
+          child: Container(
+            margin: EdgeInsets.only(left: 3, right: 3, bottom: 3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.only(
+                    top: 15,
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Pengaturan Text",
+                      style: TextStyle(
+                          color: Colors.purpleAccent,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          fontStyle: FontStyle.italic),
                     ),
-                  )
-                ]),
-              ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                  child: Divider(
+                    color: Colors.redAccent[400],
+                    thickness: 3,
+                  ),
+                ),
+                Expanded(
+                  child: Form(
+                    child: ListView(padding: EdgeInsets.all(8.0), children: <
+                        Widget>[
+                      Container(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: TextFormField(
+                            maxLines: 15,
+                            maxLength: 500,
+                            controller: textcontroller1,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "Running Text",
+                              hintText: "tulis text di sini",
+                            ),
+                          )),
+                      Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.all(10),
+                              height: 50.0,
+                              width: 125,
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0.0),
+                                    side: BorderSide(
+                                        color: Color.fromRGBO(0, 160, 227, 1))),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                padding: EdgeInsets.all(10.0),
+                                color: Color.fromRGBO(0, 160, 227, 1),
+                                textColor: Colors.white,
+                                child: Text("Batal",
+                                    style: TextStyle(fontSize: 20)),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.all(10),
+                              height: 50.0,
+                              width: 125,
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0.0),
+                                    side: BorderSide(color: Colors.pink[600])),
+                                // color: Color.fromRGBO(0, 160, 227, 1))),
+                                onPressed: () {
+                                  if (textcontroller1.text.isNotEmpty) {}
+                                  widget.blue.setting(
+                                      context, "%S", textcontroller1.text);
+                                },
+                                padding: EdgeInsets.all(10.0),
+                                color: Colors
+                                    .pink //Color.fromRGBO(0, 160, 227, 1),
+                                ,
+                                textColor: Colors.white,
+                                child: Text("Kirim",
+                                    style: TextStyle(fontSize: 20)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ]),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
