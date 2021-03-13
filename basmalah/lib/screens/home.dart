@@ -35,7 +35,7 @@ class _HomeState extends State<Home> {
         builder: (context, model, chaild) {
           return Scaffold(
             appBar: AppBar(
-              // backgroundColor: Colors.orange,
+              backgroundColor: Colors.pink,
               title: Text(widget.title),
               actions: [
                 model.isBusy
