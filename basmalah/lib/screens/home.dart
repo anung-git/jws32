@@ -9,9 +9,7 @@ import 'package:basmalah/screens/settings_screen.dart';
 import 'package:basmalah/screens/tartil.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
 import 'package:grafpix/icons.dart';
-
 import 'koreksi_jadwal.dart';
 
 class Home extends StatefulWidget {
@@ -40,21 +38,32 @@ class _HomeState extends State<Home> {
               // backgroundColor: Colors.orange,
               title: Text(widget.title),
               actions: [
-                IconButton(
-                    hoverColor: Colors.yellow,
-                    color: model.bluetoothIsConnect == true
-                        ? Colors.green
-                        : Colors.red,
-                    splashColor: Colors.red,
-                    icon: Icon(model.bluetoothIsConnect == true
-                        ? Icons.bluetooth
-                        : Icons.bluetooth_disabled),
-                    onPressed: () async {
-                      bool hasil = await model.btSerial.hubungkan(context);
-                      if (hasil == true) {
-                        setState(() {});
-                      }
-                    })
+                model.isBusy
+                    ? FittedBox(
+                        child: Container(
+                          margin: new EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      )
+                    : IconButton(
+                        // hoverColor: Colors.yellow,
+                        color: model.bluetoothIsConnect == true
+                            ? Colors.green
+                            : Colors.red,
+                        splashColor: Colors.red,
+                        icon: Icon(model.bluetoothIsConnect == true
+                            ? Icons.bluetooth
+                            : Icons.bluetooth_disabled),
+                        onPressed: () async {
+                          await model.bluetoothConnect(context);
+                          // bool hasil = await model.btSerial.hubungkan(context);
+                          // if (hasil == true) {
+                          //   setState(() {});
+                          // }
+                        })
               ],
             ),
             body: Container(

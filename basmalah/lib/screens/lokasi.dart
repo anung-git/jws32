@@ -57,11 +57,21 @@ class _LokasiState extends State<Lokasi> {
                   // style: kTextStyleBold,
                 ),
                 actions: [
-                  IconButton(
-                      icon: Icon(Icons.location_searching),
-                      onPressed: () async {
-                        await model.searchLokasi();
-                      })
+                  model.isBusy
+                      ? FittedBox(
+                          child: Container(
+                            margin: new EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon: Icon(Icons.location_searching),
+                          onPressed: () async {
+                            await model.searchLokasi();
+                          })
                 ],
               ),
               resizeToAvoidBottomInset: false,

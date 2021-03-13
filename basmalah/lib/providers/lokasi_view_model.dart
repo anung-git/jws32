@@ -61,13 +61,13 @@ class LokasiViewModel extends BaseViewModel {
     latitude = _locationData.latitude;
     longitude = _locationData.longitude;
 
-    final coordinates = new Coordinates(1.10, 45.50);
+    final coordinates = new Coordinates(latitude, longitude);
     var addresses =
         await Geocoder.local.findAddressesFromCoordinates(coordinates);
     // var first = addresses.first;
     // print("${first.featureName} : ${first.addressLine}");
     // alamat = addresses.first.featureName;
-    alamat = addresses.first.addressLine + ',' + addresses.first.featureName;
+    alamat = addresses.first.addressLine; //+ ',' + addresses.first.featureName;
 
     setBusy(false);
     latitudeTextControler.text = latitude.toString();

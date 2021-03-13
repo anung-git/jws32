@@ -14,7 +14,7 @@ class Brightnes extends StatefulWidget {
 }
 
 class _BrightnesState extends State<Brightnes> {
-  Future<TimeOfDay> setJamx(var contex, TimeOfDay initTime) async {
+  Future<TimeOfDay> setJam(var contex, TimeOfDay initTime) async {
     TimeOfDay hasil = await showTimePicker(
       context: context,
       initialTime: initTime,
@@ -42,100 +42,16 @@ class _BrightnesState extends State<Brightnes> {
     return hasil == null ? initTime : hasil;
   }
 
-  // showAlertDialog(BuildContext context) {
-  //   // set up the button
-  //   Widget okButton = FlatButton(
-  //     child: Text("OK"),
-  //     onPressed: () {},
-  //   );
-
-  //   // set up the AlertDialog
-  //   AlertDialog alert = AlertDialog(
-  //     title: Text("My title"),
-  //     content: Text("This is my message."),
-  //     actions: [
-  //       okButton,
-  //     ],
-  //   );
-
-  //   // show the dialog
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return alert;
-  //     },
-  //   );
-  // }
-
-  _showAlertDialog(BuildContext context, int initVal) {
-    // set up the buttons
-    Widget cancelButton = ElevatedButton(
-      child: Text("Cancel"),
-      onPressed: () {},
-    );
-    Widget continueButton = ElevatedButton(
-      child: Text("Continue"),
-      onPressed: () {},
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("AlertDialog"),
-      content: Column(
-        children: [
-          Text(
-            "Kecerahan",
-            style: TextStyle(
-                fontSize: 20,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.bold),
-          ),
-          Slider(
-              max: 7,
-              min: 0,
-              divisions: 1,
-              value: initVal.toDouble(),
-              onChanged: (value) {
-                setState(() {
-                  initVal = value.toInt();
-                });
-              }),
-          // Text(initVal.toString())
-        ],
-      ),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-
-  void _showFontSizePickerDialog() async {
+  Future<int> _setBrightnes(int init) async {
     // <-- note the async keyword here
 
     // this will contain the result from Navigator.pop(context, result)
-    final selectedFontSize = await showDialog<double>(
+    final selectedBrightnes = await showDialog<int>(
       context: context,
-      builder: (context) => FontSizePickerDialog(initialFontSize: 10),
+      builder: (context) => BrightnesPickerDialog(initialBrighnes: init),
     );
 
-    // execution of this code continues when the dialog was closed (popped)
-
-    // note that the result can also be null, so check it
-    // (back button or pressed outside of the dialog)
-    if (selectedFontSize != null) {
-      setState(() {
-        // _fontSize = selectedFontSize;
-      });
-    }
+    return selectedBrightnes;
   }
 
   @override
@@ -207,31 +123,39 @@ class _BrightnesState extends State<Brightnes> {
                                       MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: <Widget>[
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          width: 20,
-                                        ),
-                                        Icon(
-                                          Icons.access_time,
-                                          size: 35,
-                                          color: Colors.orange[900],
-                                        ),
-                                        Container(
-                                          width: 10,
-                                        ),
-                                        Text(
-                                          model.jam[index],
-                                          style: TextStyle(
-                                              color: Colors.grey[700],
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 20),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                      ],
+                                    GestureDetector(
+                                      onTap: () async {
+                                        TimeOfDay init = model.getInit(index);
+                                        TimeOfDay waktu =
+                                            await setJam(context, init);
+                                        model.save(index, waktu);
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: <Widget>[
+                                          Container(
+                                            width: 20,
+                                          ),
+                                          Icon(
+                                            Icons.access_time,
+                                            size: 35,
+                                            color: Colors.orange[900],
+                                          ),
+                                          Container(
+                                            width: 10,
+                                          ),
+                                          Text(
+                                            model.jam[index],
+                                            style: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20),
+                                            textAlign: TextAlign.left,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                     VerticalDivider(
                                       thickness: 3,
@@ -241,21 +165,10 @@ class _BrightnesState extends State<Brightnes> {
                                     ),
                                     GestureDetector(
                                       onTap: () async {
-                                        _showFontSizePickerDialog();
-                                        // AwesomeDialog(
-                                        //     context: context,
-                                        //     headerAnimationLoop: false,
-                                        //     // body:
-                                        //     dialogType: DialogType.NO_HEADER,
-                                        //     // title: 'Sinkron waktu',
-                                        //     // desc:
-                                        //     //     'Samakan waktu di perangkat dengan waktu di android',
-                                        //     btnOkOnPress: () {
-                                        //       // model.updateTime(context);
-                                        //     },
-                                        //     btnCancelOnPress: () {
-                                        //       print("Cancel");
-                                        //     }).show();
+                                        int hasil = await _setBrightnes(
+                                            model.brightnes(index));
+
+                                        await model.setBrightnes(index, hasil);
                                       },
                                       child: Row(
                                         crossAxisAlignment:
@@ -402,51 +315,68 @@ class _BrightnesState extends State<Brightnes> {
 // move the dialog into it's own stateful widget.
 // It's completely independent from your page
 // this is good practice
-class FontSizePickerDialog extends StatefulWidget {
+class BrightnesPickerDialog extends StatefulWidget {
   /// initial selection for the slider
-  final double initialFontSize;
+  final int initialBrighnes;
 
-  const FontSizePickerDialog({Key key, this.initialFontSize}) : super(key: key);
+  const BrightnesPickerDialog({Key key, this.initialBrighnes})
+      : super(key: key);
 
   @override
-  _FontSizePickerDialogState createState() => _FontSizePickerDialogState();
+  _BrightnesPickerDialogState createState() => _BrightnesPickerDialogState();
 }
 
-class _FontSizePickerDialogState extends State<FontSizePickerDialog> {
+class _BrightnesPickerDialogState extends State<BrightnesPickerDialog> {
   /// current selection of the slider
-  double _fontSize;
+  double _brightnes;
 
   @override
   void initState() {
     super.initState();
-    _fontSize = widget.initialFontSize;
+    _brightnes = widget.initialBrighnes.toDouble();
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Font Size'),
+      contentPadding: EdgeInsets.all(0),
+      titlePadding: EdgeInsets.only(bottom: 10, top: 5),
+      // actionsOverflowDirection: MainAxisAlignment.spaceBetween,
+      // buttonPadding: ,
+      title: Center(child: Text('Kecerahan = ${_brightnes.toInt()}')),
       content: Container(
+        height: 20,
         child: Slider(
-          value: _fontSize,
+          value: _brightnes,
           min: 0,
           max: 7,
-          divisions: 1,
+          divisions: 7,
           onChanged: (value) {
             setState(() {
-              _fontSize = value;
+              _brightnes = value;
             });
           },
         ),
       ),
       actions: <Widget>[
-        FlatButton(
+        OutlinedButton(
           onPressed: () {
             // Use the second argument of Navigator.pop(...) to pass
             // back a result to the page that opened the dialog
-            Navigator.pop(context, _fontSize);
+            Navigator.pop(context, widget.initialBrighnes);
           },
-          child: Text('DONE'),
+          child: Text('Batal'),
+        ),
+        SizedBox(
+          width: 5,
+        ),
+        OutlinedButton(
+          onPressed: () {
+            // Use the second argument of Navigator.pop(...) to pass
+            // back a result to the page that opened the dialog
+            Navigator.pop(context, _brightnes.toInt());
+          },
+          child: Text('Selesai'),
         )
       ],
     );

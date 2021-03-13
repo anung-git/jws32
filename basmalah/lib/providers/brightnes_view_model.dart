@@ -6,7 +6,7 @@ import '../services/btHelper.dart';
 import 'memori.dart';
 
 class BrightnesViewModel extends BaseViewModel {
-  final jam = ["03:00", "09:00", "17:00", "21:00"];
+  List<String> jam = ["03:00", "09:00", "17:00", "21:00"];
   List<int> bright = [5, 5, 5, 5];
   BluetoothDriver bluetooth;
   Memori _eprom = new Memori();
@@ -19,7 +19,6 @@ class BrightnesViewModel extends BaseViewModel {
 
   void kirim(BuildContext context, BluetoothDriver x) async {
     String kirim = '';
-
     // for (var i = 0; i < 5; i++) {
     //   kirim += fix[i].replaceAll(new RegExp(r':'), '');
     // }
@@ -31,20 +30,24 @@ class BrightnesViewModel extends BaseViewModel {
   init(BluetoothDriver blue) async {
     this.bluetooth = blue;
     for (var i = 0; i < 4; i++) {
+      String T = await _eprom.getString("jamcerah" + i.toString()) ?? "00:00";
+      if (T != '') {
+        jam[i] = T;
+      }
       bright[i] = await _eprom.getInt("brightnes" + i.toString()) ?? 5;
     }
     notifyListeners();
   }
 
   Future<void> save(int index, TimeOfDay waktu) async {
-    // fix[index] =
-    //     waktu.hour < 10 ? '0' + waktu.hour.toString() : waktu.hour.toString();
-    // fix[index] += ':';
-    // fix[index] += waktu.minute < 10
-    //     ? '0' + waktu.minute.toString()
-    //     : waktu.minute.toString();
-    // await _eprom.setString("fix" + index.toString(), fix[index]);
-    // notifyListeners();
+    jam[index] =
+        waktu.hour < 10 ? '0' + waktu.hour.toString() : waktu.hour.toString();
+    jam[index] += ':';
+    jam[index] += waktu.minute < 10
+        ? '0' + waktu.minute.toString()
+        : waktu.minute.toString();
+    await _eprom.setString("jamcerah" + index.toString(), jam[index]);
+    notifyListeners();
     // await _eprom.setInt("koreksiJadwal" + i.toString(), 0);
   }
 
@@ -59,9 +62,16 @@ class BrightnesViewModel extends BaseViewModel {
     return bright[index];
   }
 
-  void setBrightnes(int index, double value) {
-    print(value);
-    bright[index] = value.toInt();
+  Future<void> setBrightnes(int index, int value) async {
+    await _eprom.setInt("brightnes" + index.toString(), value);
+    bright[index] = value;
     notifyListeners();
+  }
+
+  TimeOfDay getInit(int index) {
+    String hour = jam[index].substring(0, 2);
+    String minut = jam[index].substring(3);
+    TimeOfDay init = TimeOfDay(hour: int.parse(hour), minute: int.parse(minut));
+    return init;
   }
 }

@@ -11,6 +11,14 @@ class HomeViewModel extends BaseViewModel {
   BluetoothDriver btSerial = BluetoothDriver();
   // getter
   bool get bluetoothIsConnect => btSerial.isConnected();
+  Future<void> bluetoothConnect(var context) async {
+    setBusy(true);
+    notifyListeners();
+    await btSerial.hubungkan(context);
+    setBusy(false);
+    notifyListeners();
+  }
+
   //fungtion / method
   void init() {
     // BluetoothConnection.toAddress(null).then((koneksi) {

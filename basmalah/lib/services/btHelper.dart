@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
 class BluetoothDriver {
-  List<String> command = [
+  final command = [
     "OKJ\n", //jam
     "OKI\n", //Iqomah
     "OKT\n", //tarhim
@@ -17,7 +17,7 @@ class BluetoothDriver {
     "OKW\n", //mp3
     "OKS\n",
   ];
-  List<String> cmdOK = [
+  final cmdOK = [
     "SINKRON WAKTU SUKSES",
     "SET IQOMAH SUKSES",
     "SET TARHIM SUKSES",
@@ -29,7 +29,7 @@ class BluetoothDriver {
     "SUKSES",
     "SUKSES",
   ];
-  List<String> datafinish = [
+  final datafinish = [
     "SetTime\n",
     "SetIqom\n",
     "SetTrkm\n",
@@ -51,26 +51,23 @@ class BluetoothDriver {
   String cmd = "";
   String data = "";
   String terimaData = "";
-  // String _address = "...";
-  // String _name = "...";
-  // String _messageBuffer = '';
-  var context;
+  BuildContext context;
   //class
   // BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
   BluetoothConnection connection;
 
   //getter
   bool isConnected() {
-    if (connection == null) {
-      return false;
-    } else {
-      if (connection.isConnected == null) {
-        return false;
-      } else {
-        return connection.isConnected;
-      }
-    }
-    // return connection == null ? false : connection.isConnected;
+    // if (connection == null) {
+    //   return false;
+    // } else {
+    //   if (connection.isConnected == null) {
+    //     return false;
+    //   } else {
+    //     return connection.isConnected;
+    //   }
+    // }
+    return connection == null ? false : connection.isConnected;
   }
 
 //constructor
@@ -122,7 +119,6 @@ class BluetoothDriver {
     await FlutterBluetoothSerial.instance.state.then((state) async {
       if (state.isEnabled == false) {
         await FlutterBluetoothSerial.instance.requestEnable();
-        // notifyListeners();
       }
     });
     final BluetoothDevice selectedDevice = await Navigator.of(context).push(
@@ -140,14 +136,12 @@ class BluetoothDriver {
       return true;
     } else {
       return false;
-      // notifyListeners();
     }
   }
 
   //method / Fungsi
   Future sendMessage(String text) async {
     text = text.trim();
-
     if (text.length > 0) {
       try {
         connection.output.add(utf8.encode(text));
@@ -186,18 +180,14 @@ class BluetoothDriver {
         if (element == data) {
           String msg = cmdOK[datafinish.indexOf(element)];
           showSnackBar(this.context, msg);
-          print("kok error sihh");
-          print(msg);
         }
       });
     } else {
       showSnackBar(this.context, "COMMAND ERROR");
-      print("command error");
     }
   }
 
   void showSnackBar(BuildContext context, String msg) {
-    print("show snackbar = " + msg);
     final snackBar = SnackBar(
         content: Text(
       msg,
